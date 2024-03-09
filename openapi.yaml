@@ -1,0 +1,102 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: Review API
+    description: 定义评价服务
+    version: 0.0.1
+paths:
+    /v1/review:
+        post:
+            tags:
+                - Review
+            description: 创建评价
+            operationId: Review_CreateReview
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.review.v1.CreateReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.CreateReviewReply'
+    /v1/review/reply:
+        post:
+            tags:
+                - Review
+            description: 商家回复评价
+            operationId: Review_ReplyReview
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.review.v1.ReplyReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.ReplyReviewReply'
+components:
+    schemas:
+        api.review.v1.CreateReviewReply:
+            type: object
+            properties:
+                reviewID:
+                    type: string
+            description: 创建评价的回复
+        api.review.v1.CreateReviewRequest:
+            type: object
+            properties:
+                userID:
+                    type: string
+                orderID:
+                    type: string
+                score:
+                    type: integer
+                    format: int32
+                serviceScore:
+                    type: integer
+                    format: int32
+                expressScore:
+                    type: integer
+                    format: int32
+                content:
+                    type: string
+                picInfo:
+                    type: string
+                videoInfo:
+                    type: string
+                anonymous:
+                    type: boolean
+            description: 创建评价的参数
+        api.review.v1.ReplyReviewReply:
+            type: object
+            properties:
+                replyID:
+                    type: string
+            description: 创建回复评价的返回值
+        api.review.v1.ReplyReviewRequest:
+            type: object
+            properties:
+                reviewID:
+                    type: string
+                storeID:
+                    type: string
+                content:
+                    type: string
+                picInfo:
+                    type: string
+                videoInfo:
+                    type: string
+            description: 创建回复评价参数
+tags:
+    - name: Review
