@@ -64,6 +64,7 @@ func newReviewInfo(db *gorm.DB, opts ...gen.DOOption) reviewInfo {
 	return _reviewInfo
 }
 
+// reviewInfo 评价表
 type reviewInfo struct {
 	reviewInfoDo reviewInfoDo
 

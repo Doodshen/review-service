@@ -52,6 +52,7 @@ func newReviewAppealInfo(db *gorm.DB, opts ...gen.DOOption) reviewAppealInfo {
 	return _reviewAppealInfo
 }
 
+// reviewAppealInfo 评价商家申诉表
 type reviewAppealInfo struct {
 	reviewAppealInfoDo reviewAppealInfoDo
 

@@ -10,7 +10,7 @@ import (
 
 const TableNameReviewReplyInfo = "review_reply_info"
 
-// ReviewReplyInfo mapped from table <review_reply_info>
+// ReviewReplyInfo 评价商家回复表
 type ReviewReplyInfo struct {
 	ID        int64      `gorm:"column:id;primaryKey;autoIncrement:true;comment:主键" json:"id"`                      // 主键
 	CreateBy  string     `gorm:"column:create_by;not null;comment:创建⽅标识" json:"create_by"`                          // 创建⽅标识
