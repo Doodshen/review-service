@@ -89,16 +89,31 @@ func (s *ReviewService) ListReview(ctx context.Context, req *pb.ListReviewReques
 func (s *ReviewService) AppealReview(ctx context.Context, req *pb.AppealReviewRequest) (*pb.AppealReviewReply, error) {
 	fmt.Printf("[service] AppealReview req :%#v\n", req)
 	ret, err := s.uc.AppealReview(ctx, &biz.AppealParam{
-		ReviewID:  req.ReviewID,
-		StoreID:   req.StoreID,
-		Reason:    req.Reason,
-		Content:   req.Content,
-		PicInfo:   req.PicInfo,
-		VideoInfo: req.VideoInfo,
+		ReviewID:  req.GetReviewID(),
+		StoreID:   req.GetStoreID(),
+		Reason:    req.GetReason(),
+		Content:   req.GetContent(),
+		PicInfo:   req.GetPicInfo(),
+		VideoInfo: req.GetVideoInfo(),
 	})
 	if err != nil {
 		return nil, err
 	}
 	fmt.Printf("[service AppealReview ret:%v err:%v\n]", ret, err)
 	return &pb.AppealReviewReply{AppealID: ret.AppealID}, nil
+}
+
+// AuditAppeal O短审核评价
+func (s *ReviewService) AuditAppeal(ctx context.Context, req *pb.AuditAppealRequest) (*pb.AuditAppealReply, error) {
+	fmt.Printf("[service] AuditAppeal req:%v", req)
+	err := s.uc.AuditAppeal(ctx, &biz.AuditParam{
+		ReviewID: req.GetReviewID(),
+		AppealID: req.GetAppealID(),
+		OpUser:   req.GetOpUser(),
+		Status:   req.GetStatus(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &pb.AuditAppealReply{}, nil
 }

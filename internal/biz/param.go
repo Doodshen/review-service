@@ -18,3 +18,11 @@ type AppealParam struct {
 	VideoInfo string
 	OpUser    string
 }
+
+//AuditAppealParam o端审核商家申述的参数
+type AuditParam struct {
+	ReviewID int64
+	AppealID int64
+	OpUser   string
+	Status   int32
+}

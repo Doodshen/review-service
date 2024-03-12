@@ -19,6 +19,9 @@ type ReviewRepo interface {
 
 	//申述评价
 	AppealReview(context.Context, *AppealParam) (*model.ReviewAppealInfo, error)
+
+	//审核评价
+	AuditAppeal(context.Context, *AuditParam) error
 }
 
 type ReviewUsecase struct {
@@ -79,4 +82,10 @@ func (uc *ReviewUsecase) CreateReply(ctx context.Context, param *ReplyParam) (*m
 func (uc *ReviewUsecase) AppealReview(ctx context.Context, param *AppealParam) (*model.ReviewAppealInfo, error) {
 	uc.log.WithContext(ctx).Debugf("[biz] AppealReview param :%v", param)
 	return uc.repo.AppealReview(ctx, param)
+}
+
+// AduitAppeal 审核申述
+func (uc *ReviewUsecase) AuditAppeal(ctx context.Context, param *AuditParam) error {
+	uc.log.WithContext(ctx).Debugf("[biz] AduitAppeal param :%v", param)
+	return uc.repo.AuditAppeal(ctx, param)
 }
