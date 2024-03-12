@@ -60,4 +60,4 @@ error:
 			--proto_path=./third_party \
 			--go_out=paths=source_relative:. \
 			--go-errors_out=paths=source_relative:. \
-			api/review/v1/review.error.proto
+			api/review/v1/review_error.proto
