@@ -16,6 +16,9 @@ type ReviewRepo interface {
 
 	//创建评价回复
 	SaveReply(context.Context, *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error)
+
+	//申述评价
+	AppealReview(context.Context, *AppealParam) (*model.ReviewAppealInfo, error)
 }
 
 type ReviewUsecase struct {
@@ -70,4 +73,10 @@ func (uc *ReviewUsecase) CreateReply(ctx context.Context, param *ReplyParam) (*m
 		VideoInfo: param.VideoInfo,
 	}
 	return uc.repo.SaveReply(ctx, reply)
+}
+
+// AppealReview 申述评价
+func (uc *ReviewUsecase) AppealReview(ctx context.Context, param *AppealParam) (*model.ReviewAppealInfo, error) {
+	uc.log.WithContext(ctx).Debugf("[biz] AppealReview param :%v", param)
+	return uc.repo.AppealReview(ctx, param)
 }

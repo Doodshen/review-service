@@ -7,8 +7,11 @@ import (
 	"review-service/internal/biz"
 	"review-service/internal/data/model"
 	"review-service/internal/data/query"
+	"review-service/pkg/snowflake"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type reviewRepo struct {
@@ -84,4 +87,66 @@ func (r *reviewRepo) SaveReply(ctx context.Context, reply *model.ReviewReplyInfo
 	})
 	// 3. 返回
 	return reply, err
+}
+
+// AppealReview 保存申述内容
+func (r *reviewRepo) AppealReview(ctx context.Context, param *biz.AppealParam) (*model.ReviewAppealInfo, error) {
+	//1.先查询有没有申述
+	ret, err := r.data.query.ReviewAppealInfo.WithContext(ctx).
+		Where(
+			query.ReviewAppealInfo.ReviewID.Eq(param.ReviewID),
+			query.ReviewAppealInfo.StoreID.Eq(param.StoreID),
+		).First()
+	r.log.Debugf("AppealReview query ret:%v err:%v", ret, err)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		//其他查询错误
+		return nil, err
+	}
+
+	//已经有了申述评价
+	if err == nil && ret.Status > 10 {
+		return nil, errors.New("该评价已有审核过的申述记录")
+	}
+
+	// 2查询不到审核过的申诉记录
+	// 1. 有申诉记录但是处于待审核状态，需要更新
+	// if ret != nil{
+	// 	// update
+	// }else{
+	// 	// insert
+	// }
+	// 3. 没有申诉记录，需要创建
+
+	appeal := &model.ReviewAppealInfo{
+		ReviewID:  param.ReviewID,
+		StoreID:   param.StoreID,
+		Status:    10,
+		Reason:    param.Reason,
+		Content:   param.Content,
+		PicInfo:   param.PicInfo,
+		VideoInfo: param.VideoInfo,
+	}
+	if ret != nil {
+		appeal.AppealID = ret.AppealID
+	} else {
+		appeal.AppealID = snowflake.GenID()
+	}
+	err = r.data.query.ReviewAppealInfo.
+		WithContext(ctx).
+		Clauses(clause.OnConflict{
+			Columns: []clause.Column{
+				{Name: "review_id"}, // ON DUPLICATE KEY
+			},
+			DoUpdates: clause.Assignments(map[string]interface{}{ // UPDATE
+				"status":     appeal.Status,
+				"content":    appeal.Content,
+				"reason":     appeal.Reason,
+				"pic_info":   appeal.PicInfo,
+				"video_info": appeal.VideoInfo,
+			}),
+		}).
+		Create(appeal) // INSERT
+	r.log.Debugf("AppealReview, err:%v", err)
+	return appeal, err
+
 }

@@ -7,6 +7,25 @@ info:
     description: 定义评价服务
     version: 0.0.1
 paths:
+    /v1/appeal/audit:
+        post:
+            tags:
+                - Review
+            description: o端审核评价申述
+            operationId: Review_AuditAppeal
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.review.v1.AuditAppealRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.AuditAppealReply'
     /v1/review:
         post:
             tags:
@@ -26,11 +45,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.review.v1.CreateReviewReply'
+    /v1/review/appeal:
+        post:
+            tags:
+                - Review
+            description: B端申述评价
+            operationId: Review_AppealReview
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.review.v1.AppealReviewRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.AppealReviewReply'
     /v1/review/reply:
         post:
             tags:
                 - Review
-            description: 商家回复评价
+            description: B端回复评价
             operationId: Review_ReplyReview
             requestBody:
                 content:
@@ -47,6 +85,47 @@ paths:
                                 $ref: '#/components/schemas/api.review.v1.ReplyReviewReply'
 components:
     schemas:
+        api.review.v1.AppealReviewReply:
+            type: object
+            properties:
+                appealID:
+                    type: string
+            description: 对评价进行申诉的返回值
+        api.review.v1.AppealReviewRequest:
+            type: object
+            properties:
+                reviewID:
+                    type: string
+                storeID:
+                    type: string
+                reason:
+                    type: string
+                content:
+                    type: string
+                picInfo:
+                    type: string
+                videoInfo:
+                    type: string
+            description: AppealReviewRequest 申诉评价的请求参数
+        api.review.v1.AuditAppealReply:
+            type: object
+            properties: {}
+            description: 对申诉进行审核的返回值
+        api.review.v1.AuditAppealRequest:
+            type: object
+            properties:
+                appealID:
+                    type: string
+                reviewID:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+                opUser:
+                    type: string
+                opRemarks:
+                    type: string
+            description: 对申诉进行审核的请求
         api.review.v1.CreateReviewReply:
             type: object
             properties:
@@ -59,6 +138,8 @@ components:
                 userID:
                     type: string
                 orderID:
+                    type: string
+                storeID:
                     type: string
                 score:
                     type: integer

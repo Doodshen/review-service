@@ -40,6 +40,7 @@ func (s *ReviewService) CreateReview(ctx context.Context, req *pb.CreateReviewRe
 		VideoInfo:    req.VideoInfo,
 		Anonymous:    anonymous,
 		Status:       0,
+		StoreID:      req.StoreID,
 	})
 
 	//如果下一层出现了错误，这里review就是nil，防止空指针
@@ -82,4 +83,22 @@ func (s *ReviewService) GetReview(ctx context.Context, req *pb.GetReviewRequest)
 }
 func (s *ReviewService) ListReview(ctx context.Context, req *pb.ListReviewRequest) (*pb.ListReviewReply, error) {
 	return &pb.ListReviewReply{}, nil
+}
+
+// AppealReview 申述评价
+func (s *ReviewService) AppealReview(ctx context.Context, req *pb.AppealReviewRequest) (*pb.AppealReviewReply, error) {
+	fmt.Printf("[service] AppealReview req :%#v\n", req)
+	ret, err := s.uc.AppealReview(ctx, &biz.AppealParam{
+		ReviewID:  req.ReviewID,
+		StoreID:   req.StoreID,
+		Reason:    req.Reason,
+		Content:   req.Content,
+		PicInfo:   req.PicInfo,
+		VideoInfo: req.VideoInfo,
+	})
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("[service AppealReview ret:%v err:%v\n]", ret, err)
+	return &pb.AppealReviewReply{AppealID: ret.AppealID}, nil
 }
