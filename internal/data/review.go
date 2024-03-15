@@ -155,6 +155,7 @@ func (r *reviewRepo) AppealReview(ctx context.Context, param *biz.AppealParam) (
 
 // AduitAppeal AuditAppeal 审核申诉（运营对商家的申诉进行审核，审核通过会隐藏该评价）
 func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditAppealParam) error {
+	fmt.Println("这里出现错误2")
 	err := r.data.query.Transaction(func(tx *query.Query) error {
 		// 申诉表
 		if _, err := tx.ReviewAppealInfo.
@@ -179,8 +180,9 @@ func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditAppealPara
 	return err
 }
 
-// ListReviewByStoreID 通过ES中查询
+// ListReviewByStoreID 根据storeID 分页查询评价
 func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, offset, limit int) ([]*model.ReviewInfo, error) {
+	// 去ES里面查询评价
 	resp, err := r.data.es.Search().
 		Index("review").
 		From(offset).
@@ -195,8 +197,9 @@ func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, off
 					},
 				},
 			},
-		}).Do(ctx)
-	fmt.Printf("--->es search :%v,%v\n", resp, err)
+		}).
+		Do(ctx)
+	fmt.Printf("--> es search: %v %v\n", resp, err)
 	if err != nil {
 		return nil, err
 	}
@@ -205,5 +208,4 @@ func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, off
 	fmt.Printf("es result hits:%s\n", b)
 
 	return nil, nil
-
 }

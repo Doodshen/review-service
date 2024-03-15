@@ -46,7 +46,7 @@ func newApp(logger log.Logger, r registry.Registrar, gs *grpc.Server, hs *http.S
 			gs,
 			hs,
 		),
-		kratos.Registrar(r), // 服务注册 最终还是通过这个进行服务注册 
+		kratos.Registrar(r), // 服务注册 最终还是通过这个进行服务注册
 	)
 }
 
@@ -82,7 +82,7 @@ func main() {
 		panic(err)
 	}
 
-	app, cleanup, err := wireApp(bc.Server, &rc,bc.Data, logger)
+	app, cleanup, err := wireApp(bc.Server, &rc, bc.Data, bc.Elasticsearch, logger)
 	if err != nil {
 		panic(err)
 	}

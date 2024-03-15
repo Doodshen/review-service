@@ -118,12 +118,10 @@ func (s *ReviewService) AuditAppeal(ctx context.Context, req *pb.AuditAppealRequ
 	return &pb.AuditAppealReply{}, nil
 }
 
-
-//ListReviewByStoreID 根据商家ID查询评价 
-func (s *ReviewService) ListReviewByStoreID(ctx context.Context,req *pb.ListReviewByStoreIDRequest) (*pb.ListReviewByStoreIDReply,error) {
-	fmt.Printf("[service] ListReviewByStoreID req:%#v",req)
-	s.uc.ListReviewByStoreID(ctx,req.StoreID,int(req.Page),int(req.Size))
-
-	//TODO 
-	return nil,nil
+// ListReviewByStoreID 根据商家ID查询评价
+func (s *ReviewService) ListReviewByStoreID(ctx context.Context, req *pb.ListReviewByStoreIDRequest) (*pb.ListReviewByStoreIDReply, error) {
+	fmt.Printf("[service] ListReviewByStoreID req:%#v\n", req)
+	s.uc.ListReviewByStoreID(ctx, req.StoreID, int(req.Page), int(req.Size))
+	// TODO
+	return nil, nil
 }

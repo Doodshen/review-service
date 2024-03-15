@@ -90,8 +90,8 @@ func (uc ReviewUsecase) AuditAppeal(ctx context.Context, param *AuditAppealParam
 
 //ListReviewByStoreID 根据StoreID查询评价
 
-func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeid int64, page, size int) ([]*model.ReviewInfo, error) {
-	//参数校验
+// ListReviewByStoreID 根据storeID分页查询评价
+func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeID int64, page, size int) ([]*model.ReviewInfo, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -100,6 +100,12 @@ func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeid int64, 
 	}
 	offset := (page - 1) * size
 	limit := size
-	uc.log.WithContext(ctx).Debugf("[biz] ListReviewByStoreID storeID:%#v", storeid)
-	return uc.repo.ListReviewByStoreID(ctx, storeid, offset, limit)
+	fmt.Println("这里出错误了")
+	uc.log.WithContext(ctx).Debugf("[biz] ListReviewByStoreID storeID:%v", storeID)
+
+	re, err := uc.repo.ListReviewByStoreID(ctx, storeID, offset, limit)
+	if err != nil {
+		fmt.Println("这里出错了2")
+	}
+	return re, err
 }

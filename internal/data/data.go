@@ -26,14 +26,14 @@ type Data struct {
 }
 
 // NewData .
-func NewData(db *gorm.DB, logger log.Logger) (*Data, func(), error) {
+func NewData(db *gorm.DB, esClient *elasticsearch.TypedClient, logger log.Logger) (*Data, func(), error) {
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
 	// 非常重要!为GEN生成的query代码设置数据库连接对象
 	query.SetDefault(db)
 
-	return &Data{query: query.Q, log: log.NewHelper(logger)}, cleanup, nil
+	return &Data{query: query.Q, es: esClient, log: log.NewHelper(logger)}, cleanup, nil
 }
 
 func NewDB(cfg *conf.Data) (*gorm.DB, error) {
@@ -44,13 +44,13 @@ func NewDB(cfg *conf.Data) (*gorm.DB, error) {
 	return nil, errors.New("connect db fail unsupported db driver")
 }
 
-// NewESClient 构建ES客户端
+// NewESClient ES Client 的构造函数
 func NewESClient(cfg *conf.Elasticsearch) (*elasticsearch.TypedClient, error) {
-	//ES配置
+	// ES 配置
 	c := elasticsearch.Config{
 		Addresses: cfg.GetAddresses(),
 	}
 
-	//创建客户端
+	// 创建客户端连接
 	return elasticsearch.NewTypedClient(c)
 }
