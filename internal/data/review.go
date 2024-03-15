@@ -208,16 +208,17 @@ func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, off
 	//将从es中查询到的数据反序列化-----此处会报错 反序列化时间的时候
 	//resp.Hits.Hits[0].Source_--->model.ReviewInfo
 
-	list := make([]*biz.MyReviewInfo, 0, resp.Hits.Total.Value) //知道了数据的数量，可以直接初始化切片到位
+	list := make([]*biz.MyReviewInfo, 0, resp.Hits.Total.Value) // //知道了数据的数量，可以直接初始化切片到位
+	// list := make([]*model.ReviewInfo)                           // ?
 
 	for _, hit := range resp.Hits.Hits {
 		tmp := &biz.MyReviewInfo{}
-		if err = json.Unmarshal(hit.Source_, tmp); err != nil {
-			r.log.Error("json.Unmarshal(hit.Source tmp) failed err:%v", err)
+		if err := json.Unmarshal(hit.Source_, tmp); err != nil {
+			r.log.Errorf("json.Unmarshal(hit.Source_, tmp) failed, err:%v", err)
 			continue
 		}
-		//加入返回的list切片中
 		list = append(list, tmp)
 	}
+
 	return list, nil
 }

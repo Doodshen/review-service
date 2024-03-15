@@ -118,20 +118,37 @@ func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeID int64, 
 
 type MyReviewInfo struct {
 	*model.ReviewInfo
-	CreateAt MyTime `json:"create_time"` //创建时间
-	UpdateAt MyTime `json:"update_at"`   //修改时间
+
+	//拿到的消息类型都是string类型，json的tag中标明，string表示都是从string类型进行转换而来
+
+	Anonymous    int32 `json:"anonymous,string"`
+	Score        int32 `json:"score,string"`
+	ServiceScore int32 `json:"service_score,string"`
+	ExpressScore int32 `json:"express_score,string"`
+	HasMedia     int32 `json:"has_media,string"`
+	Status       int32 `json:"status,string"`
+	IsDefault    int32 `json:"is_default,string"`
+	HasReply     int32 `json:"has_reply,string"`
+	ID           int64 `json:"id,string"`
+	Version      int32 `json:"version,string"`
+	ReviewID     int64 `json:"review_id,string"`
+	OrderID      int64 `json:"order_id,string"`
+	SkuID        int64 `json:"sku_id,string"`
+	SpuID        int64 `json:"spu_id,string"`
+	StoreID      int64 `json:"store_id,string"`
+	UserID       int64 `json:"user_id,string"`
 }
 
 type MyTime time.Time
 
+// UnmarshalJSON json.Unmarshal 的时候会自动调用这个方法
 func (t *MyTime) UnmarshalJSON(data []byte) error {
-	//data = "\"2024-03-15"\"
-	s := strings.Trim(string(data), `"`) //去掉引号
+	// data = "\"2023-12-17 14:20:18\""
+	s := strings.Trim(string(data), `"`)
 	tmp, err := time.Parse(time.DateTime, s)
 	if err != nil {
 		return err
 	}
 	*t = MyTime(tmp)
 	return nil
-
 }
