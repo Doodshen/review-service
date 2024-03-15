@@ -121,7 +121,26 @@ func (s *ReviewService) AuditAppeal(ctx context.Context, req *pb.AuditAppealRequ
 // ListReviewByStoreID 根据商家ID查询评价
 func (s *ReviewService) ListReviewByStoreID(ctx context.Context, req *pb.ListReviewByStoreIDRequest) (*pb.ListReviewByStoreIDReply, error) {
 	fmt.Printf("[service] ListReviewByStoreID req:%#v\n", req)
-	s.uc.ListReviewByStoreID(ctx, req.StoreID, int(req.Page), int(req.Size))
-	// TODO
-	return nil, nil
+	reviewList, err := s.uc.ListReviewByStoreID(ctx, req.StoreID, int(req.Page), int(req.Size))
+	if err != nil {
+		return nil, err
+	}
+	//格式化数据，构建Reply
+	list := make([]*pb.ReviewInfo, 0, len(reviewList))
+	for _, r := range reviewList {
+		list = append(list, &pb.ReviewInfo{
+			ReviewID:     r.ReviewID,
+			UserID:       r.UserID,
+			OrderID:      r.OrderID,
+			Score:        r.Score,
+			ServiceScore: r.ServiceScore,
+			ExpressScore: r.ExpressScore,
+			Content:      r.Content,
+			PicInfo:      r.PicInfo,
+			VideoInfo:    r.VideoInfo,
+			Status:       r.Status,
+		})
+	}
+
+	return &pb.ListReviewByStoreIDReply{List: list}, nil
 }

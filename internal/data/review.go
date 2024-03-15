@@ -204,8 +204,19 @@ func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, off
 		return nil, err
 	}
 	fmt.Printf("es result total:%v\n", resp.Hits.Total.Value)
-	b, _ := json.Marshal(resp.Hits)
-	fmt.Printf("es result hits:%s\n", b)
+	//将从es中查询到的数据反序列化
+	//resp.Hits.Hits[0].Source_--->model.ReviewInfo
 
-	return nil, nil
+	list := make([]*model.ReviewInfo, 0, resp.Hits.Total.Value) //知道了数据的数量，可以直接初始化切片到位
+
+	for _, hit := range resp.Hits.Hits {
+		tmp := &model.ReviewInfo{}
+		if err = json.Unmarshal(hit.Source_, tmp); err != nil {
+			r.log.Error("json.Unmarshal(hit.Source tmp) failed err:%v", err)
+			continue
+		}
+		//加入返回的list切片中
+		list = append(list, tmp)
+	}
+	return list, nil
 }
