@@ -102,14 +102,10 @@ func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeID int64, 
 	}
 	offset := (page - 1) * size
 	limit := size
-	fmt.Println("这里出错误了")
 	uc.log.WithContext(ctx).Debugf("[biz] ListReviewByStoreID storeID:%v", storeID)
 
-	re, err := uc.repo.ListReviewByStoreID(ctx, storeID, offset, limit)
-	if err != nil {
-		fmt.Println("这里出错了2")
-	}
-	return re, err
+	return uc.repo.ListReviewByStoreID(ctx, storeID, offset, limit)
+
 }
 
 //biz层创建MyReviewInfo防止循环引用
