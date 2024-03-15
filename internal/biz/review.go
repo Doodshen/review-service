@@ -6,6 +6,8 @@ import (
 	v1 "review-service/api/review/v1"
 	"review-service/internal/data/model"
 	"review-service/pkg/snowflake"
+	"strings"
+	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -19,7 +21,7 @@ type ReviewRepo interface {
 	AppealReview(context.Context, *AppealParam) (*model.ReviewAppealInfo, error)
 	AuditAppeal(context.Context, *AuditAppealParam) error
 
-	ListReviewByStoreID(ctx context.Context, storeID int64, offset, limit int) ([]*model.ReviewInfo, error)
+	ListReviewByStoreID(ctx context.Context, storeID int64, offset, limit int) ([]*MyReviewInfo, error)
 }
 
 type ReviewUsecase struct {
@@ -91,7 +93,7 @@ func (uc ReviewUsecase) AuditAppeal(ctx context.Context, param *AuditAppealParam
 //ListReviewByStoreID 根据StoreID查询评价
 
 // ListReviewByStoreID 根据storeID分页查询评价
-func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeID int64, page, size int) ([]*model.ReviewInfo, error) {
+func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeID int64, page, size int) ([]*MyReviewInfo, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -108,4 +110,28 @@ func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeID int64, 
 		fmt.Println("这里出错了2")
 	}
 	return re, err
+}
+
+//biz层创建MyReviewInfo防止循环引用
+//GO语言中时间是这种格式:时间格式化 ：Go语言中的时间是这种格式 ："2006-01-02T15:04:05Z07:00
+//解决：自定义时间类型 gen生成的模型中时间的类型不好改 ，可以自定义结构及，将·gen生成的模型进行嵌套然后自定义时间类型
+
+type MyReviewInfo struct {
+	*model.ReviewInfo
+	CreateAt MyTime `json:"create_time"` //创建时间
+	UpdateAt MyTime `json:"update_at"`   //修改时间
+}
+
+type MyTime time.Time
+
+func (t *MyTime) UnmarshalJSON(data []byte) error {
+	//data = "\"2024-03-15"\"
+	s := strings.Trim(string(data), `"`) //去掉引号
+	tmp, err := time.Parse(time.DateTime, s)
+	if err != nil {
+		return err
+	}
+	*t = MyTime(tmp)
+	return nil
+
 }

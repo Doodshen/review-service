@@ -181,7 +181,7 @@ func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditAppealPara
 }
 
 // ListReviewByStoreID 根据storeID 分页查询评价
-func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, offset, limit int) ([]*model.ReviewInfo, error) {
+func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, offset, limit int) ([]*biz.MyReviewInfo, error) {
 	// 去ES里面查询评价
 	resp, err := r.data.es.Search().
 		Index("review").
@@ -204,13 +204,14 @@ func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, off
 		return nil, err
 	}
 	fmt.Printf("es result total:%v\n", resp.Hits.Total.Value)
-	//将从es中查询到的数据反序列化
+
+	//将从es中查询到的数据反序列化-----此处会报错 反序列化时间的时候
 	//resp.Hits.Hits[0].Source_--->model.ReviewInfo
 
-	list := make([]*model.ReviewInfo, 0, resp.Hits.Total.Value) //知道了数据的数量，可以直接初始化切片到位
+	list := make([]*biz.MyReviewInfo, 0, resp.Hits.Total.Value) //知道了数据的数量，可以直接初始化切片到位
 
 	for _, hit := range resp.Hits.Hits {
-		tmp := &model.ReviewInfo{}
+		tmp := &biz.MyReviewInfo{}
 		if err = json.Unmarshal(hit.Source_, tmp); err != nil {
 			r.log.Error("json.Unmarshal(hit.Source tmp) failed err:%v", err)
 			continue
