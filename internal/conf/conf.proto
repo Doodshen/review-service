@@ -55,3 +55,7 @@ message Registry{
   }
   Consul consul = 1;
 }
+
+message Elasticsearch {
+  repeated string addresses = 1;
+}

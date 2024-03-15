@@ -6,6 +6,7 @@ import (
 	"review-service/internal/data/query"
 	"strings"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
 	"gorm.io/driver/mysql"
@@ -13,7 +14,7 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewReviewRepo, NewDB)
+var ProviderSet = wire.NewSet(NewData, NewReviewRepo, NewDB, NewESClient)
 
 // Data .
 type Data struct {
@@ -21,6 +22,7 @@ type Data struct {
 	// db *gorm.DB
 	query *query.Query
 	log   *log.Helper
+	es    *elasticsearch.TypedClient // github.com/elastic/go-elasticsearch/v8
 }
 
 // NewData .
@@ -40,4 +42,15 @@ func NewDB(cfg *conf.Data) (*gorm.DB, error) {
 		return gorm.Open(mysql.Open(cfg.Database.GetSource()))
 	}
 	return nil, errors.New("connect db fail unsupported db driver")
+}
+
+// NewESClient 构建ES客户端
+func NewESClient(cfg *conf.Elasticsearch) (*elasticsearch.TypedClient, error) {
+	//ES配置
+	c := elasticsearch.Config{
+		Addresses: cfg.GetAddresses(),
+	}
+
+	//创建客户端
+	return elasticsearch.NewTypedClient(c)
 }

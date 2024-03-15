@@ -18,6 +18,8 @@ type ReviewRepo interface {
 
 	AppealReview(context.Context, *AppealParam) (*model.ReviewAppealInfo, error)
 	AuditAppeal(context.Context, *AuditAppealParam) error
+
+	ListReviewByStoreID(ctx context.Context, storeID int64, offset, limit int) ([]*model.ReviewInfo, error)
 }
 
 type ReviewUsecase struct {
@@ -84,4 +86,20 @@ func (uc *ReviewUsecase) AppealReview(ctx context.Context, param *AppealParam) (
 func (uc ReviewUsecase) AuditAppeal(ctx context.Context, param *AuditAppealParam) error {
 	uc.log.WithContext(ctx).Debugf("[biz] AuditAppeal param:%v", param)
 	return uc.repo.AuditAppeal(ctx, param)
+}
+
+//ListReviewByStoreID 根据StoreID查询评价
+
+func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeid int64, page, size int) ([]*model.ReviewInfo, error) {
+	//参数校验
+	if page <= 0 {
+		page = 1
+	}
+	if size <= 0 || size > 50 {
+		size = 10
+	}
+	offset := (page - 1) * size
+	limit := size
+	uc.log.WithContext(ctx).Debugf("[biz] ListReviewByStoreID storeID:%#v", storeid)
+	return uc.repo.ListReviewByStoreID(ctx, storeid, offset, limit)
 }
