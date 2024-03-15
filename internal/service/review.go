@@ -105,8 +105,8 @@ func (s *ReviewService) AppealReview(ctx context.Context, req *pb.AppealReviewRe
 
 // AuditAppeal O短审核评价
 func (s *ReviewService) AuditAppeal(ctx context.Context, req *pb.AuditAppealRequest) (*pb.AuditAppealReply, error) {
-	fmt.Printf("[service] AuditAppeal req:%v", req)
-	err := s.uc.AuditAppeal(ctx, &biz.AuditParam{
+	fmt.Printf("[service] AuditAppeal req:%#v\n", req)
+	err := s.uc.AuditAppeal(ctx, &biz.AuditAppealParam{
 		ReviewID: req.GetReviewID(),
 		AppealID: req.GetAppealID(),
 		OpUser:   req.GetOpUser(),

@@ -14,14 +14,10 @@ type ReviewRepo interface {
 	SaveReview(context.Context, *model.ReviewInfo) (*model.ReviewInfo, error)
 	GetReviewByOrderID(context.Context, int64) ([]*model.ReviewInfo, error)
 
-	//创建评价回复
 	SaveReply(context.Context, *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error)
 
-	//申述评价
 	AppealReview(context.Context, *AppealParam) (*model.ReviewAppealInfo, error)
-
-	//审核评价
-	AuditAppeal(context.Context, *AuditParam) error
+	AuditAppeal(context.Context, *AuditAppealParam) error
 }
 
 type ReviewUsecase struct {
@@ -85,7 +81,7 @@ func (uc *ReviewUsecase) AppealReview(ctx context.Context, param *AppealParam) (
 }
 
 // AduitAppeal 审核申述
-func (uc *ReviewUsecase) AuditAppeal(ctx context.Context, param *AuditParam) error {
-	uc.log.WithContext(ctx).Debugf("[biz] AduitAppeal param :%v", param)
+func (uc ReviewUsecase) AuditAppeal(ctx context.Context, param *AuditAppealParam) error {
+	uc.log.WithContext(ctx).Debugf("[biz] AuditAppeal param:%v", param)
 	return uc.repo.AuditAppeal(ctx, param)
 }

@@ -1,6 +1,6 @@
 package biz
 
-//ReplyParam 商家回复评价的参数
+// ReplyParam 商家回复评价的参数
 type ReplyParam struct {
 	ReviewID  int64
 	StoreID   int64
@@ -9,6 +9,16 @@ type ReplyParam struct {
 	VideoInfo string
 }
 
+// AuditParam 运营审核评价的参数
+type AuditParam struct {
+	ReviewID  int64
+	OpUser    string
+	OpReason  string
+	OpRemarks string
+	Status    int32
+}
+
+// AppealParam 商家申诉评价的参数
 type AppealParam struct {
 	ReviewID  int64
 	StoreID   int64
@@ -19,8 +29,8 @@ type AppealParam struct {
 	OpUser    string
 }
 
-//AuditAppealParam o端审核商家申述的参数
-type AuditParam struct {
+// AuditAppealParam O端审核商家申诉的参数
+type AuditAppealParam struct {
 	ReviewID int64
 	AppealID int64
 	OpUser   string

@@ -152,7 +152,7 @@ func (r *reviewRepo) AppealReview(ctx context.Context, param *biz.AppealParam) (
 }
 
 // AduitAppeal AuditAppeal 审核申诉（运营对商家的申诉进行审核，审核通过会隐藏该评价）
-func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditParam) error {
+func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditAppealParam) error {
 	err := r.data.query.Transaction(func(tx *query.Query) error {
 		// 申诉表
 		if _, err := tx.ReviewAppealInfo.
@@ -164,8 +164,8 @@ func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditParam) err
 			}); err != nil {
 			return err
 		}
-		//评价表  审核通过隐藏该评价表
-		if param.Status == 20 { //申请通过隐藏评论
+		// 评价表
+		if param.Status == 20 { // 申诉通过则需要隐藏评价
 			if _, err := tx.ReviewInfo.WithContext(ctx).
 				Where(tx.ReviewInfo.ReviewID.Eq(param.ReviewID)).
 				Update(tx.ReviewInfo.Status, 40); err != nil {
@@ -173,7 +173,6 @@ func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditParam) err
 			}
 		}
 		return nil
-
 	})
 	return err
 }
