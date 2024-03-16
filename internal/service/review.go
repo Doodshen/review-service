@@ -53,6 +53,28 @@ func (s *ReviewService) CreateReview(ctx context.Context, req *pb.CreateReviewRe
 
 }
 
+// GetReview 获取评价详情
+func (s *ReviewService) GetReview(ctx context.Context, req *pb.GetReviewRequest) (*pb.GetReviewReply, error) {
+	review, err := s.uc.GetReview(ctx, req.GetReviewID())
+	if err != nil {
+		return nil, err
+	}
+	//构建响应结构体
+	return &pb.GetReviewReply{
+		Data: &pb.ReviewInfo{
+			ReviewID:     review.ReviewID,
+			UserID:       review.UserID,
+			Score:        review.Score,
+			ServiceScore: review.ServiceScore,
+			ExpressScore: review.ExpressScore,
+			Content:      review.Content,
+			PicInfo:      review.PicInfo,
+			VideoInfo:    review.VideoInfo,
+			Status:       review.Status,
+		},
+	}, err
+}
+
 // ReplyReview 商家回复评价
 func (s *ReviewService) ReplyReview(ctx context.Context, req *pb.ReplyReviewRequest) (*pb.ReplyReviewReply, error) {
 	fmt.Printf("[serviece] CreateReview Req:%#v", req)
@@ -70,19 +92,6 @@ func (s *ReviewService) ReplyReview(ctx context.Context, req *pb.ReplyReviewRequ
 	//拼装返回数据
 
 	return &pb.ReplyReviewReply{ReplyID: replyreview.ReplyID}, nil
-}
-
-func (s *ReviewService) UpdateReview(ctx context.Context, req *pb.UpdateReviewRequest) (*pb.UpdateReviewReply, error) {
-	return &pb.UpdateReviewReply{}, nil
-}
-func (s *ReviewService) DeleteReview(ctx context.Context, req *pb.DeleteReviewRequest) (*pb.DeleteReviewReply, error) {
-	return &pb.DeleteReviewReply{}, nil
-}
-func (s *ReviewService) GetReview(ctx context.Context, req *pb.GetReviewRequest) (*pb.GetReviewReply, error) {
-	return &pb.GetReviewReply{}, nil
-}
-func (s *ReviewService) ListReview(ctx context.Context, req *pb.ListReviewRequest) (*pb.ListReviewReply, error) {
-	return &pb.ListReviewReply{}, nil
 }
 
 // AppealReview 申述评价

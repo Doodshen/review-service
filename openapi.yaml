@@ -30,7 +30,7 @@ paths:
         post:
             tags:
                 - Review
-            description: 创建评价
+            description: C端创建评价
             operationId: Review_CreateReview
             requestBody:
                 content:
@@ -83,6 +83,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/api.review.v1.ReplyReviewReply'
+    /v1/review/{reviewID}:
+        get:
+            tags:
+                - Review
+            description: C端获取评价详情
+            operationId: Review_GetReview
+            parameters:
+                - name: reviewID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.review.v1.GetReviewReply'
 components:
     schemas:
         api.review.v1.AppealReviewReply:
@@ -131,7 +150,7 @@ components:
             properties:
                 reviewID:
                     type: string
-            description: 创建评价的回复
+            description: C创建评价的回复
         api.review.v1.CreateReviewRequest:
             type: object
             properties:
@@ -158,13 +177,19 @@ components:
                     type: string
                 anonymous:
                     type: boolean
-            description: 创建评价的参数
+            description: C创建评价的参数
+        api.review.v1.GetReviewReply:
+            type: object
+            properties:
+                data:
+                    $ref: '#/components/schemas/api.review.v1.ReviewInfo'
+            description: 获取评价详情的响应
         api.review.v1.ReplyReviewReply:
             type: object
             properties:
                 replyID:
                     type: string
-            description: 创建回复评价的返回值
+            description: B创建回复评价的返回值
         api.review.v1.ReplyReviewRequest:
             type: object
             properties:
@@ -178,6 +203,34 @@ components:
                     type: string
                 videoInfo:
                     type: string
-            description: 创建回复评价参数
+            description: B创建回复评价参数
+        api.review.v1.ReviewInfo:
+            type: object
+            properties:
+                reviewID:
+                    type: string
+                userID:
+                    type: string
+                orderID:
+                    type: string
+                score:
+                    type: integer
+                    format: int32
+                serviceScore:
+                    type: integer
+                    format: int32
+                expressScore:
+                    type: integer
+                    format: int32
+                content:
+                    type: string
+                picInfo:
+                    type: string
+                videoInfo:
+                    type: string
+                status:
+                    type: integer
+                    format: int32
+            description: 评价信息
 tags:
     - name: Review

@@ -51,6 +51,13 @@ func (r *reviewRepo) GetReviewByOrderID(ctx context.Context, orderID int64) ([]*
 		Find()
 }
 
+// GetReview 查询评价详情
+func (r *reviewRepo) GetReview(ctx context.Context, reviewID int64) (*model.ReviewInfo, error) {
+	return r.data.query.ReviewInfo.WithContext(ctx).
+		Where(r.data.query.ReviewInfo.ReviewID.Eq(reviewID)).
+		First()
+}
+
 // SaveReply 保存评价回复
 func (r *reviewRepo) SaveReply(ctx context.Context, reply *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error) {
 	// 1. 数据校验

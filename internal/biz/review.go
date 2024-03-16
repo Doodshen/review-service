@@ -14,6 +14,7 @@ import (
 
 type ReviewRepo interface {
 	SaveReview(context.Context, *model.ReviewInfo) (*model.ReviewInfo, error)
+	GetReview(context.Context, int64) (*model.ReviewInfo, error)
 	GetReviewByOrderID(context.Context, int64) ([]*model.ReviewInfo, error)
 
 	SaveReply(context.Context, *model.ReviewReplyInfo) (*model.ReviewReplyInfo, error)
@@ -61,6 +62,12 @@ func (uc *ReviewUsecase) CreateReview(ctx context.Context, review *model.ReviewI
 	// 实际业务场景下就需要查询订单服务和商家服务（比如说通过RPC调用订单服务和商家服务）
 	// 4、拼装数据入库
 	return uc.repo.SaveReview(ctx, review)
+}
+
+// GetReview
+func (uc *ReviewUsecase) GetReview(ctx context.Context, reviewID int64) (*model.ReviewInfo, error) {
+	uc.log.WithContext(ctx).Debugf("[biz] GetReview reviewID:%v", reviewID)
+	return uc.repo.GetReview(ctx, reviewID)
 }
 
 // CreateReply 创建回复
