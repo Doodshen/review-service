@@ -114,7 +114,8 @@ func (uc ReviewUsecase) ListReviewByStoreID(ctx context.Context, storeID int64, 
 
 type MyReviewInfo struct {
 	*model.ReviewInfo
-
+	CreateAt MyTime `json:"create_at"` // 创建时间
+	UpdateAt MyTime `json:"update_at"` // 创建时间
 	//拿到的消息类型都是string类型，json的tag中标明，string表示都是从string类型进行转换而来
 
 	Anonymous    int32 `json:"anonymous,string"`

@@ -9,9 +9,15 @@ import (
 	"review-service/internal/data/model"
 	"review-service/internal/data/query"
 	"review-service/pkg/snowflake"
+	"strconv"
+	"strings"
+	"time"
+
+	"golang.org/x/sync/singleflight"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -182,6 +188,12 @@ func (r *reviewRepo) AuditAppeal(ctx context.Context, param *biz.AuditAppealPara
 
 // ListReviewByStoreID 根据storeID 分页查询评价
 func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, offset, limit int) ([]*biz.MyReviewInfo, error) {
+	return r.getData2(ctx, storeID, offset, limit) //直接查询ES
+	//return r.getData2(ctx, storeID, offset, limit)
+}
+
+// getdata1
+func (r *reviewRepo) getdata1(ctx context.Context, storeID int64, offset, limit int) ([]*biz.MyReviewInfo, error) {
 	// 去ES里面查询评价
 	resp, err := r.data.es.Search().
 		Index("review").
@@ -213,7 +225,7 @@ func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, off
 
 	for _, hit := range resp.Hits.Hits {
 		tmp := &biz.MyReviewInfo{}
-		if err := json.Unmarshal(hit.Source_, tmp); err != nil {
+		if err := json.Unmarshal(hit.Source_, tmp); err != nil { //从es中查询出来的数据是type RawMessage []byte 类型，所以是[]byte类型
 			r.log.Errorf("json.Unmarshal(hit.Source_, tmp) failed, err:%v", err)
 			continue
 		}
@@ -221,4 +233,129 @@ func (r *reviewRepo) ListReviewByStoreID(ctx context.Context, storeID int64, off
 	}
 
 	return list, nil
+}
+
+var g singleflight.Group
+
+// getData2升级后带有缓存版本的查询函数
+func (r *reviewRepo) getData2(ctx context.Context, storeID int64, offset, limit int) ([]*biz.MyReviewInfo, error) {
+	//取数据
+	//1.先查询redis缓存
+	//2 缓存没有查询es
+	//3 通过singleflight合并短时间大量的并发请求
+
+	//拼接key
+	key := fmt.Sprintf("review:%d:%d:%d", storeID, offset, limit)
+	b, err := r.getDataBySingleflight(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	//反序列化
+	hm := new(types.HitsMetadata)
+	if err := json.Unmarshal(b, hm); err != nil {
+		return nil, err
+	}
+	// 反序列化
+	// 反序列化数据
+	// resp.Hits.Hits[0].Source_(json.RawMessage)  ==>  model.ReviewInfo
+	list := make([]*biz.MyReviewInfo, 0, hm.Total.Value) // ?
+	// list := make([]*model.ReviewInfo)                           // ?
+
+	for _, hit := range hm.Hits {
+		tmp := &biz.MyReviewInfo{}
+		if err := json.Unmarshal(hit.Source_, tmp); err != nil {
+			r.log.Errorf("json.Unmarshal(hit.Source_, tmp) failed, err:%v", err)
+			continue
+		}
+		list = append(list, tmp)
+	}
+	return list, nil
+}
+
+// key review:76089:1:10  --> "[{},{},{}]"
+// json.Unmarshal([]byte)
+
+func (r *reviewRepo) getDataBySingleflight(ctx context.Context, key string) ([]byte, error) {
+	v, err, shared := g.Do(key, func() (interface{}, error) {
+		// 查缓存
+		data, err := r.getDataFromCache(ctx, key)
+		r.log.Debugf("r.getDataFromCache(ctx, key) data:%s, err:%v\n", data, err)
+		if err == nil {
+			return data, nil
+		}
+		// 只有在缓存中没有这个key的错误时才查ES
+		if errors.Is(err, redis.Nil) {
+			// 缓存中没有这个key,说明缓存失效了，需要查ES
+			data, err := r.getDataFromES(ctx, key)
+			if err == nil {
+				// 设置缓存
+				return data, r.setCache(ctx, key, data)
+			}
+			return nil, err
+		}
+		// 查缓存失败了,直接返回错误，不继续向下传导压力
+		return nil, err
+	})
+	r.log.Debugf("singleflight ret: v:%v err:%v shared:%v\n", v, err, shared)
+	if err != nil {
+		return nil, err
+	}
+	return v.([]byte), nil
+}
+
+// key review:76089:1:10  --> "[{},{},{}]"
+// json.Unmarshal([]byte)   因为es中查询出来的是这个类型，让redis中返回的也是这个类型，这样序列化时，不管是从哪里查询出来的数据都能直接反序列化
+// 读取缓存
+func (r *reviewRepo) getDataFromCache(ctx context.Context, key string) ([]byte, error) { //这里返回字节类型字符串
+	r.log.Debugf("getDataFromCache key:%v\n", key)
+	return r.data.rdb.Get(ctx, key).Bytes() //返回bytes类型
+}
+
+// setCache设置缓存
+func (r *reviewRepo) setCache(ctx context.Context, key string, data []byte) error {
+	return r.data.rdb.Set(ctx, key, data, time.Second*10).Err()
+}
+
+// getDataFroms 从es中查询
+func (r *reviewRepo) getDataFromES(ctx context.Context, key string) ([]byte, error) {
+	//分割key从key中获取到page size 等
+	values := strings.Split(key, ":")
+	if len(values) < 4 {
+		return nil, errors.New("invalid key")
+	}
+
+	//格式转换
+	index, storeID, offsetStr, limitStr := values[0], values[1], values[2], values[3]
+
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil {
+		return nil, err
+	}
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := r.data.es.Search().
+		Index(index).
+		From(offset).
+		Size(limit).
+		Query(&types.Query{
+			Bool: &types.BoolQuery{
+				Filter: []types.Query{
+					{
+						Term: map[string]types.TermQuery{
+							"store_id": {Value: storeID},
+						},
+					},
+				},
+			},
+		}).
+		Do(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	//将查询到的数据序列化到resp.HitS结构体中
+	return json.Marshal(resp.Hits)
 }

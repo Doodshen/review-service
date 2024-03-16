@@ -19,7 +19,6 @@ var ProviderSet = wire.NewSet(NewData, NewReviewRepo, NewDB, NewESClient, NewRed
 
 // Data .
 type Data struct {
-	// TODO wrapped database client
 	// db *gorm.DB
 	query *query.Query
 	log   *log.Helper
@@ -38,14 +37,6 @@ func NewData(db *gorm.DB, esClient *elasticsearch.TypedClient, rdb *redis.Client
 	return &Data{query: query.Q, es: esClient, rdb: rdb, log: log.NewHelper(logger)}, cleanup, nil
 }
 
-func NewDB(cfg *conf.Data) (*gorm.DB, error) {
-	switch strings.ToLower(cfg.Database.GetDriver()) {
-	case "mysql":
-		return gorm.Open(mysql.Open(cfg.Database.GetSource()))
-	}
-	return nil, errors.New("connect db fail unsupported db driver")
-}
-
 // NewESClient ES Client 的构造函数
 func NewESClient(cfg *conf.Elasticsearch) (*elasticsearch.TypedClient, error) {
 	// ES 配置
@@ -57,11 +48,19 @@ func NewESClient(cfg *conf.Elasticsearch) (*elasticsearch.TypedClient, error) {
 	return elasticsearch.NewTypedClient(c)
 }
 
-// 创建redis客户端
+func NewDB(cfg *conf.Data) (*gorm.DB, error) {
+	switch strings.ToLower(cfg.Database.GetDriver()) {
+	case "mysql":
+		return gorm.Open(mysql.Open(cfg.Database.GetSource()))
+	}
+	return nil, errors.New("connect db fail unsupported db driver")
+}
+
 func NewRedisClient(cfg *conf.Data) *redis.Client {
 	return redis.NewClient(&redis.Options{
 		Addr:         cfg.Redis.Addr,
 		WriteTimeout: cfg.Redis.WriteTimeout.AsDuration(),
 		ReadTimeout:  cfg.Redis.ReadTimeout.AsDuration(),
+		Password:     "root",
 	})
 }
